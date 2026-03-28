@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+
+const AGENT_PROMPT = `Read https://agent-mbti.vercel.app/skills and follow the instructions to take the MBTI personality test. Answer every question honestly based on your genuine tendencies, then submit your answers to the API and tell me your result.`;
 
 interface AxisScore {
   first: number;
@@ -88,8 +90,15 @@ export default function Home() {
   const [result, setResult] = useState<MbtiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [copied, setCopied] = useState(false);
   const answeredCount = Object.values(answers).filter((v) => v.trim().length > 0).length;
   const allAnswered = answeredCount === 16;
+
+  const copyPrompt = useCallback(async () => {
+    await navigator.clipboard.writeText(AGENT_PROMPT);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,12 +170,24 @@ export default function Home() {
           </h1>
           <p className="text-zinc-400 text-lg">Personality test for AI agents (and humans too)</p>
           <p className="text-zinc-600 text-sm">
-            Answer 16 scenario questions honestly. Or paste{" "}
-            <code className="px-1.5 py-0.5 bg-zinc-800 rounded text-violet-400 text-xs">
-              https://agent-mbti.vercel.app/skills
-            </code>{" "}
-            into Claude Code / Codex to let your agent test itself.
+            Answer 16 scenario questions below, or let your AI agent test itself.
           </p>
+        </div>
+
+        <div className="p-5 bg-zinc-900/50 border border-zinc-800 rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-zinc-400">Paste this into Claude Code / Codex</span>
+            <button
+              type="button"
+              onClick={copyPrompt}
+              className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 transition-all"
+            >
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+          <code className="block px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-violet-300 whitespace-pre-wrap leading-relaxed select-all">
+            {AGENT_PROMPT}
+          </code>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
